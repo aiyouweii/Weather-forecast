@@ -50,13 +50,13 @@ public class WeatherActivity extends AppCompatActivity {
 
     private TextView weatherInfoText;
 
+    private ImageView picture;
+
     private LinearLayout forecastLayout;
 
     private TextView aqiText;
 
     private TextView pm25Text;
-
-    private TextView qltyText;
 
     private TextView comfortText;
 
@@ -79,16 +79,16 @@ public class WeatherActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_weather);
         // 初始化各控件
-        bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
+        //bingPicImg = (ImageView) findViewById(R.id.bing_pic_img);
         weatherLayout = (ScrollView) findViewById(R.id.weather_layout);
         titleCity = (TextView) findViewById(R.id.title_city);
         titleUpdateTime = (TextView) findViewById(R.id.title_update_time);
         degreeText = (TextView) findViewById(R.id.degree_text);
         weatherInfoText = (TextView) findViewById(R.id.weather_info_text);
+        picture = (ImageView)findViewById(R.id.picture_view);
         forecastLayout = (LinearLayout) findViewById(R.id.forecast_layout);
         aqiText = (TextView) findViewById(R.id.aqi_text);
         pm25Text = (TextView) findViewById(R.id.pm25_text);
-        qltyText = (TextView) findViewById(R.id.aqi_text);
         comfortText = (TextView) findViewById(R.id.comfort_text);
         carWashText = (TextView) findViewById(R.id.car_wash_text);
         sportText = (TextView) findViewById(R.id.sport_text);
@@ -121,19 +121,14 @@ public class WeatherActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-        String bingPic = prefs.getString("bing_pic", null);
-        if (bingPic != null) {
-            Glide.with(this).load(bingPic).into(bingPicImg);
-        } else {
-            loadBingPic();
-        }
+
     }
 
     /**
      * 根据天气id请求城市天气信息。
      */
     public void requestWeather(final String weatherId) {
-        String weatherUrl = "http://guolin.tech/api/weather?cityid="+weatherId+"&key=29974df8d283400dbee5d5c1dfabe7de";
+        String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=29974df8d283400dbee5d5c1dfabe7de";
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
@@ -168,35 +163,10 @@ public class WeatherActivity extends AppCompatActivity {
                 });
             }
         });
-        loadBingPic();
+
     }
 
-    /**
-     * 加载必应每日一图
-     */
-    private void loadBingPic() {
-        String requestBingPic = "http://guolin.tech/api/bing_pic";
-        HttpUtil.sendOkHttpRequest(requestBingPic, new Callback() {
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                final String bingPic = response.body().string();
-                SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
-                editor.putString("bing_pic", bingPic);
-                editor.apply();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Glide.with(WeatherActivity.this).load(bingPic).into(bingPicImg);
-                    }
-                });
-            }
 
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
 
     /**
      * 处理并展示Weather实体类中的数据。
@@ -223,11 +193,24 @@ public class WeatherActivity extends AppCompatActivity {
             minText.setText(forecast.temperature.min);
             forecastLayout.addView(view);
         }
-
+        if (weatherInfo.equals("晴")){
+            picture.setImageResource(R.drawable.sun);
+        }
+        else if(weatherInfo.equals("阴")){
+            picture.setImageResource(R.drawable.dark);
+        }
+        else if(weatherInfo.equals("多云")){
+            picture.setImageResource(R.drawable.cloud);
+        }
+        else if(weatherInfo.equals("小雨")){
+            picture.setImageResource(R.drawable.rain);
+        }
+        else{
+            picture.setImageResource(R.drawable.rain);
+        }
         if (weather.aqi != null) {
             aqiText.setText(weather.aqi.city.aqi);
             pm25Text.setText(weather.aqi.city.pm25);
-            qltyText.setText(weather.aqi.city.qlty);
         }
         String comfort = "舒适度：" + weather.suggestion.comfort.info;
         String carWash = "洗车指数：" + weather.suggestion.carWash.info;
